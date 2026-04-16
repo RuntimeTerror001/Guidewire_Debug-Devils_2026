@@ -18,6 +18,11 @@ frontend/.env.local
 frontend/.env.*.local
 frontend/dist/
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
 # IDE
 .vscode/
 .idea/
@@ -28,6 +33,7 @@ frontend/dist/
 
 # Environment
 .env
+.env.production
 .env.local
 .env.*.local
 
