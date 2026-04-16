@@ -6,8 +6,8 @@ import { api, getAuthToken, setAuthToken, User } from '@/lib/api';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
+  register: (userData: any) => Promise<any>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -40,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await api.login({ email, password });
     setAuthToken(response.access_token);
     setUser(response.user);
+    return response;
   };
 
   const register = async (userData: any) => {

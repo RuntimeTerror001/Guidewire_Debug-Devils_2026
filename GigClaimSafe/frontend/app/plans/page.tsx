@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 const planIcons = {
   Basic: 'bg-slate-100 text-slate-900',
@@ -13,25 +14,28 @@ const planIcons = {
 
 export default function PlansPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('gigclaimsafe_user');
-    if (!stored) {
-      router.push('/onboard');
+    if (authLoading) return;
+    if (!user) {
+      router.push('/auth/login');
       return;
     }
-    setUserId(Number(stored));
-    api.getPlans().then(setPlans).catch(() => toast.error('Unable to fetch plans'));
-  }, [router]);
+
+    api
+      .getPlans()
+      .then(setPlans)
+      .catch(() => toast.error('Unable to fetch plans'));
+  }, [authLoading, router, user]);
 
   const handleSelect = async (planType: string) => {
-    if (!userId) return;
+    if (!user) return;
     setLoading(true);
     try {
-      await api.selectPlan({ user_id: userId, plan_type: planType });
+      await api.selectPlan({ user_id: user.id, plan_type: planType });
       toast.success(`${planType} plan activated`);
       router.push('/dashboard');
     } catch (error: any) {

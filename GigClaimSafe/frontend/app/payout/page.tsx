@@ -4,29 +4,30 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
 
 export default function PayoutPage() {
   const router = useRouter();
-  const [userId, setUserId] = useState<number | null>(null);
+  const { user, loading: authLoading } = useAuth();
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('gigclaimsafe_user');
-    if (!stored) {
-      router.push('/onboard');
+    if (authLoading) return;
+    if (!user) {
+      router.push('/auth/login');
       return;
     }
-    const id = Number(stored);
-    setUserId(id);
-    api.getPayouts(id)
+
+    api
+      .getPayouts(user.id)
       .then(setPayouts)
       .catch((error: any) => toast.error(error.message || 'Unable to load payouts'))
       .finally(() => setLoading(false));
-  }, [router]);
+  }, [authLoading, router, user]);
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center bg-slate-50">Loading payouts…</div>;

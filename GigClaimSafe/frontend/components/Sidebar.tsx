@@ -36,7 +36,7 @@ const adminItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const { user, logout, isAuthenticated, isAdmin, loading } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -48,8 +48,11 @@ export default function Sidebar() {
     return null;
   }
 
-  // Show login prompt if not authenticated
-  if (!isAuthenticated) {
+  // Skip login prompt on protected dashboard pages (auth check is in progress)
+  const isProtectedDashboard = pathname.startsWith('/dashboard');
+  
+  // Show login prompt if not authenticated AND not on a protected dashboard page
+  if (!isAuthenticated && !isProtectedDashboard && !loading) {
     return (
       <aside className="fixed left-0 top-0 z-50 h-full w-64 border-r border-slate-200 bg-white px-6 py-8">
         <div className="mb-12 flex flex-col gap-3">

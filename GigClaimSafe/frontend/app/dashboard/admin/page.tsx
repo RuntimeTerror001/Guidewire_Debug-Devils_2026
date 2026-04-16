@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -8,17 +8,72 @@ import {
 import { 
   FaShieldAlt, FaUsers, FaMoneyBillWave, FaChartPie, FaExclamationTriangle, 
   FaTerminal, FaSkullCrossbones, FaMicrochip, FaGlobe, FaSearch, FaUser,
-  FaMapMarkerAlt, FaClock, FaRupeeSign, FaCheckCircle, FaTimesCircle
+  FaMapMarkerAlt, FaClock, FaRupeeSign, FaCheckCircle, FaTimesCircle, FaSignOutAlt,
+  FaToggleOn, FaToggleOff, FaDatabase, FaCogs
 } from 'react-icons/fa';
 import FraudBadge from '../../../components/FraudBadge';
 import SimulationPanel from '../../../components/SimulationPanel';
 import { api, AdminUser } from '../../../lib/api';
+import { useAuth } from '../../../lib/auth-context';
 
 export default function AdminDashboard() {
   const [workers, setWorkers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
+  const { logout, user } = useAuth();
+  const infraRef = useRef<HTMLDivElement | null>(null);
+  const fraudRef = useRef<HTMLDivElement | null>(null);
+  const riskRef = useRef<HTMLDivElement | null>(null);
+  const networkRef = useRef<HTMLDivElement | null>(null);
+  const controlRef = useRef<HTMLDivElement | null>(null);
+  const [activeMenu, setActiveMenu] = useState('Infrastructure');
+  const [fraudDetectionEnabled, setFraudDetectionEnabled] = useState(true);
+  const [payoutAutomationEnabled, setPayoutAutomationEnabled] = useState(false);
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
+  const [workerAutomationEnabled, setWorkerAutomationEnabled] = useState(true);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/auth/login');
+  };
+
+  const handleExportLogs = () => {
+    const csvRows = [
+      ['Worker ID', 'Name', 'Email', 'Platform', 'City', 'Risk Score', 'Status', 'Total Claims', 'Total Payouts', 'Active Policy'],
+      ...filteredWorkers.map((worker) => [
+        `WKR-${worker.id.toString().padStart(4, '0')}`,
+        worker.name,
+        worker.email,
+        worker.platform,
+        worker.city,
+        worker.risk_score.toFixed(2),
+        worker.is_active ? 'ACTIVE' : 'INACTIVE',
+        worker.total_claims,
+        worker.total_payouts,
+        worker.active_policy || 'None',
+      ]),
+    ];
+
+    const csvContent = csvRows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'worker-logs.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const menuItems = [
+    { label: 'Infrastructure', icon: <FaGlobe />, ref: infraRef },
+    { label: 'Fraud Engine', icon: <FaSkullCrossbones />, ref: fraudRef },
+    { label: 'Risk Models', icon: <FaMicrochip />, ref: riskRef },
+    { label: 'Network', icon: <FaShieldAlt />, ref: networkRef },
+    { label: 'Underwriting', icon: <FaUsers />, ref: controlRef },
+  ];
 
   useEffect(() => {
     const checkAdminSetup = async () => {
@@ -80,36 +135,50 @@ export default function AdminDashboard() {
         </div>
         
         <nav className="flex-1 px-4 space-y-2">
-          {[
-            { label: 'Infrastructure', icon: <FaGlobe />, active: true },
-            { label: 'Fraud Engine', icon: <FaSkullCrossbones /> },
-            { label: 'Risk Models', icon: <FaMicrochip /> },
-            { label: 'Network', icon: <FaShieldAlt /> },
-            { label: 'Underwriting', icon: <FaUsers /> },
-          ].map((item, i) => (
-            <div key={i} className={`flex items-center gap-4 px-6 py-4 rounded-2xl cursor-pointer transition-all ${item.active ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/10' : 'hover:bg-white/5 hover:text-white'}`}>
+          {menuItems.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setActiveMenu(item.label);
+                item.ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl cursor-pointer transition-all ${
+                activeMenu === item.label
+                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/10'
+                  : 'hover:bg-white/5 hover:text-white text-slate-400'
+              }`}
+            >
               <span className="text-xl">{item.icon}</span>
               <span className="font-black text-[10px] uppercase tracking-widest hidden lg:block">{item.label}</span>
-            </div>
+            </button>
           ))}
         </nav>
 
-        <div className="p-8 border-t border-white/5 bg-black/20">
+        <div className="p-8 border-t border-white/5 bg-black/20 space-y-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full border-2 border-indigo-500/30 p-1">
               <div className="w-full h-full bg-slate-800 rounded-full" />
             </div>
             <div className="hidden lg:block">
-              <p className="text-[10px] font-black uppercase text-white tracking-widest leading-none mb-1">Oper: ADM-902</p>
+              <p className="text-[10px] font-black uppercase text-white tracking-widest leading-none mb-1">
+                {user?.name || 'Admin User'}
+              </p>
               <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Sys-Priv: ROOT</p>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 rounded-xl transition-all text-red-400 hover:text-red-300"
+          >
+            <FaSignOutAlt className="text-sm" />
+            <span className="font-black text-[9px] uppercase tracking-widest hidden lg:block">Sign Out</span>
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="pl-20 lg:ml-72 p-8 lg:p-12">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 mb-16">
+        <header ref={infraRef} className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 mb-16">
           <div>
             <div className="inline-flex items-center gap-3 px-3 py-1 bg-indigo-600/10 border border-indigo-500/20 rounded-full text-indigo-400 font-black text-[8px] uppercase tracking-widest mb-4">
               SEC_LEVEL: 10/10 • REGION: GLOBAL_SOUTH
@@ -127,7 +196,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="bg-white text-black font-black text-[10px] px-8 py-3 rounded-2xl uppercase tracking-widest hover:bg-slate-200 transition-all">Export Logs</button>
+            <button onClick={handleExportLogs} className="bg-white text-black font-black text-[10px] px-8 py-3 rounded-2xl uppercase tracking-widest hover:bg-slate-200 transition-all">Export Logs</button>
           </div>
         </header>
 
@@ -150,7 +219,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div ref={riskRef} className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Performance Mesh */}
           <div className="lg:col-span-2 admin-card p-10 rounded-[2.5rem]">
             <div className="flex justify-between items-center mb-10">
@@ -275,7 +344,244 @@ export default function AdminDashboard() {
         </div>
 
         {/* Workers Management Hub */}
-        <div className="admin-card rounded-[2.5rem] overflow-hidden mt-12">
+        <div ref={controlRef} className="admin-card rounded-[2.5rem] overflow-hidden mt-12">
+          <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+            <div className="flex items-center gap-4">
+              <FaCogs className="text-indigo-500" />
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">System Control</h3>
+            </div>
+          </div>
+          <div className="p-8 grid grid-cols-1 xl:grid-cols-2 gap-8 border-b border-white/5 bg-[#07101d]">
+            {[
+              {
+                name: 'Fraud Detection Engine',
+                enabled: fraudDetectionEnabled,
+                toggle: () => setFraudDetectionEnabled((prev) => !prev),
+                icon: FaShieldAlt,
+                detail: 'Automatic GPS spoofing and anomaly detection',
+              },
+              {
+                name: 'Automated Payouts',
+                enabled: payoutAutomationEnabled,
+                toggle: () => setPayoutAutomationEnabled((prev) => !prev),
+                icon: FaDatabase,
+                detail: 'Release approved funds faster',
+              },
+              {
+                name: 'Real-time Alerts',
+                enabled: alertsEnabled,
+                toggle: () => setAlertsEnabled((prev) => !prev),
+                icon: FaCogs,
+                detail: 'Notify operations on critical events',
+              },
+              {
+                name: 'Worker Automation',
+                enabled: workerAutomationEnabled,
+                toggle: () => setWorkerAutomationEnabled((prev) => !prev),
+                icon: FaMicrochip,
+                detail: 'Dynamic task routing and dispatch',
+              },
+            ].map((control, idx) => {
+              const IconComponent = control.icon;
+              return (
+                <div key={idx} className="flex items-center justify-between gap-6 p-6 border border-white/5 rounded-[2rem] bg-[#091621]">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-3xl bg-indigo-600/10 flex items-center justify-center text-indigo-400">
+                      <IconComponent />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-white mb-2">{control.name}</p>
+                      <p className="text-[11px] text-slate-400">{control.detail}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={control.toggle}
+                    className="rounded-full p-3 border border-white/10 bg-white/5 text-white transition-all hover:bg-indigo-500/20"
+                    aria-label={`Toggle ${control.name}`}
+                  >
+                    {control.enabled ? <FaToggleOn size={24} className="text-emerald-400" /> : <FaToggleOff size={24} className="text-slate-500" />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <div className="p-8 overflow-x-auto bg-[#050a15]">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white mb-6">Service Status</h4>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                  <th className="px-6 py-4">Service</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Uptime</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {[
+                  { service: 'Database', status: 'ONLINE', uptime: '99.98%' },
+                  { service: 'API Server', status: 'ONLINE', uptime: '99.95%' },
+                  { service: 'Cache Layer', status: 'ONLINE', uptime: '99.99%' },
+                  { service: 'Notification Service', status: 'ONLINE', uptime: '99.92%' },
+                ].map((item, idx) => (
+                  <tr key={idx} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-5 text-sm text-white font-black">{item.service}</td>
+                    <td className="px-6 py-5 text-sm text-emerald-400">{item.status}</td>
+                    <td className="px-6 py-5 text-sm text-slate-400">{item.uptime}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div ref={fraudRef} className="admin-card rounded-[2.5rem] overflow-hidden mt-12">
+          <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+            <div className="flex items-center gap-4">
+              <FaSkullCrossbones className="text-indigo-500" />
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Fraud Engine</h3>
+            </div>
+            <div className="flex gap-4">
+              <span className="text-[9px] font-black border border-red-500/20 px-3 py-1 rounded-full text-red-500 uppercase">Blocked: 24</span>
+              <span className="text-[9px] font-black border border-amber-500/20 px-3 py-1 rounded-full text-amber-500 uppercase">Review: 8</span>
+              <span className="text-[9px] font-black border border-emerald-500/20 px-3 py-1 rounded-full text-emerald-500 uppercase">Approved: 1,208</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-black/40 border-b border-white/5">
+                  <th className="px-8 py-6">Case ID</th>
+                  <th className="px-8 py-6">Worker</th>
+                  <th className="px-8 py-6">Fraud Type</th>
+                  <th className="px-8 py-6">Severity</th>
+                  <th className="px-8 py-6">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 bg-black/10">
+                {[
+                  { id: 'FRD-001', worker: 'Ravi Kumar', type: 'GPS Spoofing', severity: 'HIGH', status: 'BLOCKED' },
+                  { id: 'FRD-002', worker: 'Neha Sharma', type: 'Duplicate Claim', severity: 'MEDIUM', status: 'REVIEWING' },
+                  { id: 'FRD-003', worker: 'Aman Singh', type: 'Rapid Requests', severity: 'LOW', status: 'CLEARED' },
+                  { id: 'FRD-004', worker: 'Priya S', type: 'Location Anomaly', severity: 'HIGH', status: 'BLOCKED' },
+                ].map((case_, idx) => (
+                  <tr key={idx} className="hover:bg-white/5 transition-colors group">
+                    <td className="px-8 py-6 font-mono text-[10px] font-black text-indigo-400">{case_.id}</td>
+                    <td className="px-8 py-6 font-black text-xs text-white uppercase tracking-tighter">{case_.worker}</td>
+                    <td className="px-8 py-6 text-sm text-slate-400">{case_.type}</td>
+                    <td className="px-8 py-6">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black tracking-widest ${
+                        case_.severity === 'HIGH' ? 'bg-red-500/10 text-red-500' :
+                        case_.severity === 'MEDIUM' ? 'bg-amber-500/10 text-amber-500' :
+                        'bg-emerald-500/10 text-emerald-500'
+                      }`}>
+                        {case_.severity}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black tracking-widest flex items-center gap-2 w-fit ${
+                        case_.status === 'BLOCKED' ? 'bg-red-500/10 text-red-500' :
+                        case_.status === 'REVIEWING' ? 'bg-amber-500/10 text-amber-500' :
+                        'bg-emerald-500/10 text-emerald-500'
+                      }`}>
+                        {case_.status === 'BLOCKED' ? <FaExclamationTriangle className="text-xs" /> : <FaCheckCircle className="text-xs" />}
+                        {case_.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div ref={controlRef} className="admin-card rounded-[2.5rem] overflow-hidden mt-12">
+          <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+            <div className="flex items-center gap-4">
+              <FaCogs className="text-indigo-500" />
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">System Control</h3>
+            </div>
+          </div>
+          <div className="p-8 grid grid-cols-1 xl:grid-cols-2 gap-8 border-b border-white/5 bg-[#07101d]">
+            {[
+              {
+                name: 'Fraud Detection Engine',
+                enabled: fraudDetectionEnabled,
+                toggle: () => setFraudDetectionEnabled((prev) => !prev),
+                icon: FaShieldAlt,
+                detail: 'Automatic GPS spoofing and anomaly detection',
+              },
+              {
+                name: 'Automated Payouts',
+                enabled: payoutAutomationEnabled,
+                toggle: () => setPayoutAutomationEnabled((prev) => !prev),
+                icon: FaDatabase,
+                detail: 'Release approved funds faster',
+              },
+              {
+                name: 'Real-time Alerts',
+                enabled: alertsEnabled,
+                toggle: () => setAlertsEnabled((prev) => !prev),
+                icon: FaCogs,
+                detail: 'Notify operations on critical events',
+              },
+              {
+                name: 'Worker Automation',
+                enabled: workerAutomationEnabled,
+                toggle: () => setWorkerAutomationEnabled((prev) => !prev),
+                icon: FaMicrochip,
+                detail: 'Dynamic task routing and dispatch',
+              },
+            ].map((control, idx) => {
+              const IconComponent = control.icon;
+              return (
+                <div key={idx} className="flex items-center justify-between gap-6 p-6 border border-white/5 rounded-[2rem] bg-[#091621]">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-3xl bg-indigo-600/10 flex items-center justify-center text-indigo-400">
+                      <IconComponent />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-white mb-2">{control.name}</p>
+                      <p className="text-[11px] text-slate-400">{control.detail}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={control.toggle}
+                    className="rounded-full p-3 border border-white/10 bg-white/5 text-white transition-all hover:bg-indigo-500/20"
+                    aria-label={`Toggle ${control.name}`}
+                  >
+                    {control.enabled ? <FaToggleOn size={24} className="text-emerald-400" /> : <FaToggleOff size={24} className="text-slate-500" />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <div className="p-8 overflow-x-auto bg-[#050a15]">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white mb-6">Service Status</h4>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                  <th className="px-6 py-4">Service</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Uptime</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {[
+                  { service: 'Database', status: 'ONLINE', uptime: '99.98%' },
+                  { service: 'API Server', status: 'ONLINE', uptime: '99.95%' },
+                  { service: 'Cache Layer', status: 'ONLINE', uptime: '99.99%' },
+                  { service: 'Notification Service', status: 'ONLINE', uptime: '99.92%' },
+                ].map((item, idx) => (
+                  <tr key={idx} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-5 text-sm text-white font-black">{item.service}</td>
+                    <td className="px-6 py-5 text-sm text-emerald-400">ONLINE</td>
+                    <td className="px-6 py-5 text-sm text-slate-400">{item.uptime}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div ref={networkRef} className="admin-card rounded-[2.5rem] overflow-hidden mt-12">
           <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
             <div className="flex items-center gap-4">
               <FaUsers className="text-indigo-500" />

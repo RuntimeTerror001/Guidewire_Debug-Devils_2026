@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { api, setAuthToken } from '@/lib/api';
+import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -11,14 +12,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await api.login({ email, password });
-      setAuthToken(response.access_token);
+      const response = await login(email, password);
 
       toast.success('Login successful!');
 
