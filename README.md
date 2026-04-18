@@ -1,39 +1,43 @@
 # GigClaimSafe
+
 ### Predictive Parametric Insurance Platform for Gig Delivery Workers
+
 **Hackathon:** Guidewire DevTrails 2026
+**Team:** Debug Devils
 
-**Team:** Debug Devils 
+---
 
+## 👥 Team Members
 
+* Aahaan Sethi
+* Devashish Pandey
+* Nihar Dadhania
+* Ayra Mittal
+* Vidushi Singh
 
+---
 
-Members:
-- Aahaan Sethi
-- Devashish Pandey
-- Nihar Dadhania
-- Ayra Mittal
-- Vidushi Singh
-
-
-## Problem Overview
+## 🚨 Problem Overview
 
 India’s gig economy has millions of delivery partners working for platforms such as food delivery, grocery delivery, and e-commerce logistics. These workers depend on daily operations for income.
 
 However, **external disruptions such as heavy rainfall, extreme heat, pollution, floods, or sudden curfews** can significantly reduce their working hours and earnings. Currently, gig workers have **no structured insurance mechanism that protects them from income loss caused by such uncontrollable events.**
 
-GigSentinel AI aims to solve this problem by building an **AI-powered parametric insurance platform** that automatically detects disruptions and compensates gig workers for lost income.
+**GigClaimSafe** aims to solve this problem by building an **AI-powered parametric insurance platform** that automatically detects disruptions and compensates gig workers for lost income.
 
 ---
 
-# Target Persona & Scenario
+## 🎯 Target Persona & Scenario
 
 ### Persona Example
 
-**Name:** Rahul
-**Occupation:** Food Delivery Partner
-**Platform:** Swiggy
-**Location:** Chennai
-**Average Weekly Earnings:** ₹6000
+* **Name:** Rahul
+* **Occupation:** Food Delivery Partner
+* **Platform:** Swiggy
+* **Location:** Chennai
+* **Average Weekly Earnings:** ₹6000
+
+---
 
 ### Scenario
 
@@ -41,11 +45,11 @@ Rahul works approximately 8–10 hours per day delivering food. During extreme r
 
 As a result, Rahul may lose a significant portion of his weekly income.
 
-GigSentinel AI protects Rahul by providing **weekly income protection insurance**. If a disruption occurs in his delivery zone, the platform automatically detects the event and triggers compensation for lost income.
+**GigClaimSafe** protects Rahul by providing **weekly income protection insurance**. If a disruption occurs in his delivery zone, the platform automatically detects the event and triggers compensation for lost income.
 
 ---
 
-# Application Workflow
+## ⚙️ Application Workflow
 
 The platform follows a **parametric insurance workflow**, where payouts are triggered automatically when predefined disruption conditions occur.
 
@@ -71,7 +75,7 @@ This workflow eliminates the need for manual claim submissions and speeds up the
 
 ---
 
-# Weekly Premium Model
+## 💰 Weekly Premium Model
 
 Gig workers operate on **weekly earning cycles**, therefore the insurance policy follows a weekly subscription structure.
 
@@ -89,9 +93,9 @@ Workers operating in higher disruption zones may pay slightly higher premiums.
 
 ---
 
-# Parametric Triggers
+## 🌦️ Parametric Triggers
 
-GigSentinel AI uses **parametric triggers** to automatically activate claims when certain disruption conditions are detected.
+**GigClaimSafe** uses **parametric triggers** to automatically activate claims when certain disruption conditions are detected.
 
 ### Example Triggers
 
@@ -107,7 +111,7 @@ Once these conditions are detected, the system automatically initiates claim pro
 
 ---
 
-# Platform Choice: Web Application
+## 🌐 Platform Choice: Web Application
 
 The platform will initially be developed as a **Web Application**.
 
@@ -122,24 +126,24 @@ A mobile application can be developed in later stages after the core platform is
 
 ---
 
-# AI / ML Integration Strategy
+## 🤖 AI / ML Integration Strategy
 
 Artificial Intelligence plays a key role in multiple parts of the system.
 
-## 1. Risk Prediction Model
+---
+
+### 1. Risk Prediction Model
 
 Machine learning models analyze environmental and historical disruption data to estimate the probability of disruptions in a given area.
 
-Inputs may include:
+**Inputs may include:**
 
-* historical rainfall data
-* pollution levels
-* seasonal weather patterns
-* traffic congestion trends
+* Historical rainfall data
+* Pollution levels
+* Seasonal weather patterns
+* Traffic congestion trends
 
 The model produces a **risk score** that influences premium pricing.
-
-Example:
 
 ```
 Low Risk Area → Lower Premium
@@ -148,72 +152,72 @@ High Risk Area → Higher Premium
 
 ---
 
-## 2. Fraud Detection System
+### 2. Fraud Detection System
 
 To prevent misuse of automated insurance payouts, the system incorporates anomaly detection techniques.
 
-Fraud checks include:
+**Fraud checks include:**
 
 * GPS location validation
-* duplicate claim detection
-* disruption verification using external APIs
+* Duplicate claim detection
+* Disruption verification using external APIs
 
-Possible ML techniques include:
+**Possible ML techniques:**
 
 * Isolation Forest
 * Random Forest classification
-* anomaly detection models
+* Anomaly detection models
 
 ---
 
-# Technology Stack
+## 🛠️ Technology Stack
 
 ### Frontend
 
-Next.js
-Tailwind CSS
-Chart.js / Recharts
-Mapbox (for geospatial risk visualization)
+* Next.js
+* Tailwind CSS
+* Chart.js / Recharts
+* Mapbox (for geospatial risk visualization)
 
 ### Backend
 
-FastAPI (Python)
-REST APIs
+* FastAPI (Python)
+* REST APIs
 
 ### AI / ML
 
-Python
-Scikit-learn
-Pandas
-NumPy
-XGBoost
+* Python
+* Scikit-learn
+* Pandas
+* NumPy
+* XGBoost
 
 ### Data Sources
 
-Weather APIs
-Air Pollution APIs
-Traffic data APIs
-Government weather alerts
+* Weather APIs
+* Air Pollution APIs
+* Traffic data APIs
+* Government weather alerts
 
 ### Database
 
-PostgreSQL
-PostGIS (for geospatial risk analysis)
+* PostgreSQL
+* PostGIS (for geospatial risk analysis)
 
 ### Payments
 
-Razorpay Sandbox / UPI simulation
+* Razorpay Sandbox / UPI simulation
 
 ### Deployment
 
-Docker containers
-Cloud deployment (AWS / GCP)
+* Docker containers
+* Cloud deployment (AWS / GCP)
 
 ---
 
-# Development Plan
+## 🚀 Development Plan
 
-## Phase 1 – Ideation & Architecture
+### Phase 1 – Ideation & Architecture
 
 * Define problem and target persona
 * Design system architecture
@@ -221,29 +225,35 @@ Cloud deployment (AWS / GCP)
 * Design AI model workflow
 * Create GitHub repository and documentation
 
-## Phase 2 – Automation & Protection
+---
+
+### Phase 2 – Automation & Protection
 
 * Worker onboarding system
 * Insurance policy management
 * Dynamic premium calculation
 * Parametric disruption detection
 
-## Phase 3 – Optimization & Scaling
+---
+
+### Phase 3 – Optimization & Scaling
 
 * AI fraud detection models
 * Instant payout integration
-* analytics dashboard
-* performance optimization
+* Analytics dashboard
+* Performance optimization
 
 ---
 
-# Expected Impact
+## 🌍 Expected Impact
 
-GigSentinel AI aims to:
+**GigClaimSafe** aims to:
 
-* provide financial stability to gig workers
-* automate insurance claims using parametric triggers
-* reduce operational complexity for insurers
-* create a scalable insurance platform for the gig economy
+* Provide financial stability to gig workers
+* Automate insurance claims using parametric triggers
+* Reduce operational complexity for insurers
+* Create a scalable insurance platform for the gig economy
 
 By combining **AI prediction, automated claims processing, and real-time disruption monitoring**, the platform can deliver faster and more reliable insurance services for gig workers.
+
+---
